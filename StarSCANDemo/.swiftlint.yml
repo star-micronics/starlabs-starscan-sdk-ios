@@ -1,0 +1,7 @@
+included: # paths to include during linting. `--path` is ignored if present.
+  - StarSCANDemo
+disabled_rules: # rule identifiers to exclude from running
+  - line_length
+  - file_length
+  - function_body_length
+  - cyclomatic_complexity

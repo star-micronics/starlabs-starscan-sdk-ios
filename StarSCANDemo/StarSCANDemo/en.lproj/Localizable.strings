@@ -1,0 +1,13 @@
+
+"available" = "bluetooth available";
+"unsupported" = "ble unsupported";
+"unauthorized" = "bluetooth unauthorized";
+"poweredOff" = "bluetooth poweredOff";
+"resetting" = "bluetooth resetting";
+
+"connectedNumber" = "connected:";
+"openBluetooth" = "please open bluetooth in Setting-Bluetooth";
+"ok" = "ok";
+
+"switchTo1d" = "switchTo1dCode";
+"switchTo2d" = "switchTo2dCode";

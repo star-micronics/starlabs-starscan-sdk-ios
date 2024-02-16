@@ -1,0 +1,26 @@
+"available" = "蓝牙正常";
+
+/* (No Comment) */
+"connectedNumber" = "连接数:";
+
+/* (No Comment) */
+"ok" = "确定";
+
+/* (No Comment) */
+"openBluetooth" = "请在设置-蓝牙开启蓝牙";
+
+/* (No Comment) */
+"poweredOff" = "蓝牙已关闭";
+
+/* (No Comment) */
+"resetting" = "蓝牙复位";
+
+/* (No Comment) */
+"unauthorized" = "蓝牙未授权";
+
+/* (No Comment) */
+"unsupported" = "不支持蓝牙";
+
+"switchTo1d" = "切换到一维码";
+
+"switchTo2d" = "切换到二维码";

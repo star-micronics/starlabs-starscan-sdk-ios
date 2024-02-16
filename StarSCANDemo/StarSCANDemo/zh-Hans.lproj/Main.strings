@@ -1,0 +1,60 @@
+/* Class = "UIButton"; normalTitle = "switchCodeType"; ObjectID = "4wX-6H-qjC"; */
+"4wX-6H-qjC.normalTitle" = "切换二维码条形码";
+
+/* Class = "UIButton"; normalTitle = "back"; ObjectID = "5tP-3a-hS4"; */
+"5tP-3a-hS4.normalTitle" = "返回";
+
+/* Class = "UILabel"; text = "state"; ObjectID = "7Sv-6g-ApN"; */
+"7Sv-6g-ApN.text" = "";
+
+/* Class = "UILabel"; text = "identifier"; ObjectID = "aMl-GK-MUJ"; */
+"aMl-GK-MUJ.text" = "";
+
+/* Class = "UILabel"; text = "connect number"; ObjectID = "bkH-RF-8Ud"; */
+"bkH-RF-8Ud.text" = "";
+
+/* Class = "UILabel"; text = "bluetooth state"; ObjectID = "BNp-gZ-Hxh"; */
+"BNp-gZ-Hxh.text" = "";
+
+/* Class = "UIButton"; normalTitle = "share log"; ObjectID = "De4-uP-gCM"; */
+"De4-uP-gCM.normalTitle" = "分享日志";
+
+/* Class = "UIButton"; normalTitle = "clearConnection"; ObjectID = "gJm-gc-uvY"; */
+"gJm-gc-uvY.normalTitle" = "清除连接";
+
+/* Class = "UIButton"; normalTitle = "queryBatteryLevel"; ObjectID = "Jz9-Fd-eNx"; */
+"Jz9-Fd-eNx.normalTitle" = "查询电量";
+
+/* Class = "UIButton"; normalTitle = "back"; ObjectID = "MFP-5d-loM"; */
+"MFP-5d-loM.normalTitle" = "返回";
+
+/* Class = "UIButton"; normalTitle = "useConnectedDevice"; ObjectID = "mzs-dU-3o7"; */
+"mzs-dU-3o7.normalTitle" = "使用系统连上的设备";
+
+/* Class = "UIButton"; normalTitle = "setDeviceConfig"; ObjectID = "OOt-Ye-yFo"; */
+"OOt-Ye-yFo.normalTitle" = "设置设备配置信息";
+
+/* Class = "UIButton"; normalTitle = "new connect"; ObjectID = "PGm-if-DhM"; */
+"PGm-if-DhM.normalTitle" = "连接新设备";
+
+/* Class = "UIButton"; normalTitle = "updateFirmware"; ObjectID = "pwh-iZ-xrG"; */
+"pwh-iZ-xrG.normalTitle" = "升级固件";
+
+/* Class = "UIButton"; normalTitle = "queryfirmwareVersion"; ObjectID = "rcf-Vx-KUM"; */
+"rcf-Vx-KUM.normalTitle" = "查询固件版本";
+
+/* Class = "UILabel"; text = "receive data:"; ObjectID = "s1g-h0-Ryp"; */
+"s1g-h0-Ryp.text" = "扫码数据:";
+
+/* Class = "UILabel"; text = "peripheral name"; ObjectID = "SLq-kr-EIP"; */
+"SLq-kr-EIP.text" = "";
+
+/* Class = "UIButton"; normalTitle = "clearDisconnected"; ObjectID = "sWY-W2-RJ3"; */
+"sWY-W2-RJ3.normalTitle" = "清除已断连的设备";
+
+/* Class = "UILabel"; text = "select firmware"; ObjectID = "uiN-Bl-po4"; */
+"uiN-Bl-po4.text" = "选择固件";
+
+/* Class = "UIButton"; normalTitle = "queryDeviceConfig"; ObjectID = "Vgi-Ap-6zx"; */
+"Vgi-Ap-6zx.normalTitle" = "查询设备配置信息";
+

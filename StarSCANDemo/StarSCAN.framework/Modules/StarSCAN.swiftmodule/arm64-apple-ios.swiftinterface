@@ -1,0 +1,1044 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 5.9 (swiftlang-5.9.0.128.108 clang-1500.0.40.1)
+// swift-module-flags: -target arm64-apple-ios12.0 -enable-objc-interop -enable-library-evolution -swift-version 5 -enforce-exclusivity=checked -O -module-name StarSCAN
+// swift-module-flags-ignorable: -enable-bare-slash-regex
+import Compression
+import CoreBluetooth
+import CoreFoundation
+import Dispatch
+import Foundation
+@_exported import StarSCAN
+import StarSCAN_Private
+import Swift
+import UIKit
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+import zlib
+public protocol BKRemotePeripheralDelegate : AnyObject {
+  func remotePeripheralIsReady(_ remotePeripheral: StarSCAN.BKRemotePeripheral)
+  func receivedData(_ data: Foundation.Data)
+  func receivedBattery(_ data: Foundation.Data)
+  func lostConnection(_ remotePeripheral: StarSCAN.BKRemotePeripheral)
+}
+@_hasMissingDesignatedInitializers public class BKRemotePeripheral : StarSCAN.BKRemotePeer {
+  public enum State {
+    case shallow, disconnected, connecting, connected, disconnecting
+    public static func == (a: StarSCAN.BKRemotePeripheral.State, b: StarSCAN.BKRemotePeripheral.State) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public var state: StarSCAN.BKRemotePeripheral.State {
+    get
+  }
+  public var name: Swift.String? {
+    get
+  }
+  public var peripheralDelegate: (any StarSCAN.BKRemotePeripheralDelegate)?
+  public var maximumUpdateValueLength: Swift.Int {
+    get
+  }
+  public var peripheral: CoreBluetooth.CBPeripheral?
+  public init(identifier: Foundation.UUID, peripheral: CoreBluetooth.CBPeripheral?)
+  public func onDidDisconnect()
+  public var isPeripheralReady: Swift.Bool
+  public func queryBatteryLevel()
+  @objc deinit
+}
+public enum BKError : Swift.Error, Swift.Equatable {
+  case remotePeerNotConnected
+  case sendLengthOverflow
+  case defalutError(underlyingError: Swift.String?)
+  case connectionNoCentralManagerSet
+  case connectionAlreadyConnected
+  case connectionAlreadyConnecting
+  case connectionByUUIDIsNotImplementedYet
+  case connectionInterrupted
+  case connectionNoAttemptForRemotePeripheral
+  case connectionNoForRemotePeripheral
+  case connectionTimeoutElapsed
+  case connectionInternalError(underlyingError: Swift.String?)
+  case scannerNoCentralManagerSet
+  case scannerBusy
+  case scannerInterrupted
+  case centralStateMachineTransitioning(currentState: StarSCAN.BKCentralStateMachine.State, validStates: [StarSCAN.BKCentralStateMachine.State])
+  public static func == (a: StarSCAN.BKError, b: StarSCAN.BKError) -> Swift.Bool
+}
+@_hasMissingDesignatedInitializers @objc open class DFUFirmwareSize : ObjectiveC.NSObject {
+  @objc open var softdevice: Swift.UInt32 {
+    get
+  }
+  @objc open var bootloader: Swift.UInt32 {
+    get
+  }
+  @objc open var application: Swift.UInt32 {
+    get
+  }
+  @objc deinit
+}
+open class FileDestination : StarSCAN.BaseDestination {
+  public var logFileURL: Foundation.URL?
+  public var syncAfterEachWrite: Swift.Bool
+  public var colored: Swift.Bool {
+    get
+    set
+  }
+  public var logFileMaxSize: (Swift.Int)
+  public var logFileAmount: Swift.Int
+  override public var defaultHashValue: Swift.Int {
+    get
+  }
+  public init(logFileURL: Foundation.URL? = nil)
+  override open func send(_ level: StarSCAN.SwiftyBeaver.Level, msg: Swift.String, thread: Swift.String, file: Swift.String, function: Swift.String, line: Swift.Int, context: Any? = nil) -> Swift.String?
+  public func deleteLogFile() -> Swift.Bool
+  @objc deinit
+}
+public enum CompressionMethod : Swift.UInt16 {
+  case none
+  case deflate
+  public init?(rawValue: Swift.UInt16)
+  public typealias RawValue = Swift.UInt16
+  public var rawValue: Swift.UInt16 {
+    get
+  }
+}
+public typealias CRC32 = Swift.UInt32
+public typealias Consumer = (_ data: Foundation.Data) throws -> Swift.Void
+public typealias Provider = (_ position: Swift.Int64, _ size: Swift.Int) throws -> Foundation.Data
+extension Foundation.Data {
+  public func crc32(checksum: StarSCAN.CRC32) -> StarSCAN.CRC32
+  public static func compress(size: Swift.Int64, bufferSize: Swift.Int, provider: (_ position: Swift.Int64, _ size: Swift.Int) throws -> Foundation.Data, consumer: (_ data: Foundation.Data) throws -> Swift.Void) throws -> StarSCAN.CRC32
+  public static func decompress(size: Swift.Int64, bufferSize: Swift.Int, skipCRC32: Swift.Bool, provider: (_ position: Swift.Int64, _ size: Swift.Int) throws -> Foundation.Data, consumer: (_ data: Foundation.Data) throws -> Swift.Void) throws -> StarSCAN.CRC32
+}
+public func == (lhs: StarSCAN.BKDiscoveriesChange, rhs: StarSCAN.BKDiscoveriesChange) -> Swift.Bool
+public enum BKDiscoveriesChange : Swift.Equatable {
+  case insert(discovery: StarSCAN.BKDiscovery?)
+  case remove(discovery: StarSCAN.BKDiscovery?)
+  public var discovery: StarSCAN.BKDiscovery! {
+    get
+  }
+}
+@objc public enum DFUFirmwareType : Swift.UInt8 {
+  case softdevice = 1
+  case bootloader = 2
+  case application = 4
+  case softdeviceBootloader = 3
+  case softdeviceBootloaderApplication = 7
+  public init?(rawValue: Swift.UInt8)
+  public typealias RawValue = Swift.UInt8
+  public var rawValue: Swift.UInt8 {
+    get
+  }
+}
+public struct DFUFirmwareError : Swift.Error {
+  public enum FileType {
+    case zip
+    case binOrHex
+    case dat
+    public static func == (a: StarSCAN.DFUFirmwareError.FileType, b: StarSCAN.DFUFirmwareError.FileType) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public let type: StarSCAN.DFUFirmwareError.FileType
+}
+extension StarSCAN.DFUFirmwareError : Foundation.LocalizedError {
+  public var errorDescription: Swift.String? {
+    get
+  }
+}
+@objc public class DFUFirmware : ObjectiveC.NSObject {
+  @objc final public let fileName: Swift.String?
+  @objc final public let fileUrl: Foundation.URL?
+  @objc public var valid: Swift.Bool {
+    @objc get
+  }
+  @objc public var size: StarSCAN.DFUFirmwareSize {
+    @objc get
+  }
+  @objc public var parts: Swift.Int {
+    @objc get
+  }
+  @objc convenience public init(urlToZipFile: Foundation.URL) throws
+  @objc public init(urlToZipFile: Foundation.URL, type: StarSCAN.DFUFirmwareType) throws
+  @objc convenience public init(zipFile: Foundation.Data) throws
+  @objc public init(zipFile: Foundation.Data, type: StarSCAN.DFUFirmwareType) throws
+  @objc public init(urlToBinOrHexFile: Foundation.URL, urlToDatFile: Foundation.URL?, type: StarSCAN.DFUFirmwareType) throws
+  @objc public init(binFile: Foundation.Data, datFile: Foundation.Data?, type: StarSCAN.DFUFirmwareType)
+  @objc public init(hexFile: Foundation.Data, datFile: Foundation.Data?, type: StarSCAN.DFUFirmwareType) throws
+  @objc deinit
+}
+@objc public enum DFUError : Swift.Int {
+  case remoteLegacyDFUSuccess = 1
+  case remoteLegacyDFUInvalidState = 2
+  case remoteLegacyDFUNotSupported = 3
+  case remoteLegacyDFUDataExceedsLimit = 4
+  case remoteLegacyDFUCrcError = 5
+  case remoteLegacyDFUOperationFailed = 6
+  case remoteSecureDFUSuccess = 11
+  case remoteSecureDFUOpCodeNotSupported = 12
+  case remoteSecureDFUInvalidParameter = 13
+  case remoteSecureDFUInsufficientResources = 14
+  case remoteSecureDFUInvalidObject = 15
+  case remoteSecureDFUSignatureMismatch = 16
+  case remoteSecureDFUUnsupportedType = 17
+  case remoteSecureDFUOperationNotPermitted = 18
+  case remoteSecureDFUOperationFailed = 20
+  case remoteSecureDFUExtendedError = 21
+  case remoteExtendedErrorWrongCommandFormat = 22
+  case remoteExtendedErrorUnknownCommand = 23
+  case remoteExtendedErrorInitCommandInvalid = 24
+  case remoteExtendedErrorFwVersionFailure = 25
+  case remoteExtendedErrorHwVersionFailure = 26
+  case remoteExtendedErrorSdVersionFailure = 27
+  case remoteExtendedErrorSignatureMissing = 28
+  case remoteExtendedErrorWrongHashType = 29
+  case remoteExtendedErrorHashFailed = 30
+  case remoteExtendedErrorWrongSignatureType = 31
+  case remoteExtendedErrorVerificationFailed = 32
+  case remoteExtendedErrorInsufficientSpace = 33
+  case remoteExperimentalButtonlessDFUSuccess = 9001
+  case remoteExperimentalButtonlessDFUOpCodeNotSupported = 9002
+  case remoteExperimentalButtonlessDFUOperationFailed = 9004
+  case remoteButtonlessDFUSuccess = 91
+  case remoteButtonlessDFUOpCodeNotSupported = 92
+  case remoteButtonlessDFUOperationFailed = 94
+  case remoteButtonlessDFUInvalidAdvertisementName = 95
+  case remoteButtonlessDFUBusy = 96
+  case remoteButtonlessDFUNotBonded = 97
+  case fileNotSpecified = 101
+  case fileInvalid = 102
+  case extendedInitPacketRequired = 103
+  case initPacketRequired = 104
+  case failedToConnect = 201
+  case deviceDisconnected = 202
+  case bluetoothDisabled = 203
+  case serviceDiscoveryFailed = 301
+  case deviceNotSupported = 302
+  case readingVersionFailed = 303
+  case enablingControlPointFailed = 304
+  case writingCharacteristicFailed = 305
+  case receivingNotificationFailed = 306
+  case unsupportedResponse = 307
+  case bytesLost = 308
+  case crcError = 309
+  case invalidInternalState = 500
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public enum DFUState : Swift.Int {
+  case connecting
+  case starting
+  case enablingDfuMode
+  case uploading
+  case validating
+  case disconnecting
+  case completed
+  case aborted
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+extension StarSCAN.DFUState : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+@objc public protocol DFUProgressDelegate {
+  @objc func dfuProgressDidChange(for part: Swift.Int, outOf totalParts: Swift.Int, to progress: Swift.Int, currentSpeedBytesPerSecond: Swift.Double, avgSpeedBytesPerSecond: Swift.Double)
+}
+@objc public protocol DFUServiceDelegate {
+  @objc func dfuStateDidChange(to state: StarSCAN.DFUState)
+  @objc func dfuError(_ error: StarSCAN.DFUError, didOccurWithMessage message: Swift.String)
+}
+extension StarSCAN.Archive {
+  final public func extract(_ entry: StarSCAN.Entry, to url: Foundation.URL, bufferSize: Swift.Int = defaultReadChunkSize, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil) throws -> StarSCAN.CRC32
+  final public func extract(_ entry: StarSCAN.Entry, bufferSize: Swift.Int = defaultReadChunkSize, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil, consumer: (_ data: Foundation.Data) throws -> Swift.Void) throws -> StarSCAN.CRC32
+}
+extension StarSCAN.Archive {
+  final public func totalUnitCountForRemoving(_ entry: StarSCAN.Entry) -> Swift.Int64
+  final public func totalUnitCountForReading(_ entry: StarSCAN.Entry) -> Swift.Int64
+  final public func totalUnitCountForAddingItem(at url: Foundation.URL) -> Swift.Int64
+}
+extension StarSCAN.Archive {
+  final public func addEntry(with path: Swift.String, relativeTo baseURL: Foundation.URL, compressionMethod: StarSCAN.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil) throws
+  final public func addEntry(with path: Swift.String, fileURL: Foundation.URL, compressionMethod: StarSCAN.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil) throws
+  final public func addEntry(with path: Swift.String, type: StarSCAN.Entry.EntryType, uncompressedSize: Swift.Int64, modificationDate: Foundation.Date = Date(), permissions: Swift.UInt16? = nil, compressionMethod: StarSCAN.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil, provider: (_ position: Swift.Int64, _ size: Swift.Int) throws -> Foundation.Data) throws
+  final public func remove(_ entry: StarSCAN.Entry, bufferSize: Swift.Int = defaultReadChunkSize, progress: Foundation.Progress? = nil) throws
+}
+public typealias BKSendDataCompletionHandler = ((_ data: Foundation.Data, _ remotePeer: StarSCAN.BKRemotePeer, _ error: StarSCAN.BKError?) -> Swift.Void)
+@_hasMissingDesignatedInitializers public class BKPeer {
+  public var configuration: StarSCAN.BKConfiguration? {
+    get
+  }
+  public func sendData(_ data: Foundation.Data, toRemotePeer remotePeer: StarSCAN.BKRemotePeer, completionHandler: StarSCAN.BKSendDataCompletionHandler?)
+  @objc deinit
+}
+extension StarSCAN.Archive {
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func extract(_ entry: StarSCAN.Entry, to url: Foundation.URL, bufferSize: Swift.UInt32, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil) throws -> StarSCAN.CRC32
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func extract(_ entry: StarSCAN.Entry, bufferSize: Swift.UInt32, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil, consumer: (_ data: Foundation.Data) throws -> Swift.Void) throws -> StarSCAN.CRC32
+}
+@objc public class StarSCANPeripheral : ObjectiveC.NSObject, StarSCAN.BKRemotePeripheralDelegate {
+  @objc weak public var peripheralDelegate: (any StarSCAN.StarSCANPeripheralDelegate)?
+  final public let remotePeripheral: StarSCAN.BKRemotePeripheral
+  @objc public var identifier: Foundation.UUID {
+    @objc get
+  }
+  @objc public var name: Swift.String? {
+    @objc get
+  }
+  @objc public var cbPeripheral: CoreBluetooth.CBPeripheral {
+    @objc get
+  }
+  @objc public var isReady: Swift.Bool {
+    @objc get
+  }
+  public init(_ remote: StarSCAN.BKRemotePeripheral)
+  @objc public var batteryLevel: Swift.Int
+  @objc public func queryBatteryLevel()
+  public func queryBatteryByCommand()
+  @objc public func queryFirmwareVersion()
+  @objc public func queryDeviceConfig()
+  @objc public func setDeviceConfig(_ configFilePath: Swift.String)
+  @objc public func updateFirmware(_ firmwarePath: Swift.String)
+  public func remotePeripheralIsReady(_ remotePeripheral: StarSCAN.BKRemotePeripheral)
+  public func onDidDisconnect()
+  public func receivedData(_ data: Foundation.Data)
+  public func receivedBattery(_ data: Foundation.Data)
+  public func lostConnection(_ remotePeripheral: StarSCAN.BKRemotePeripheral)
+  @objc deinit
+}
+public func == (lhs: StarSCAN.StarSCANPeripheral, rhs: StarSCAN.StarSCANPeripheral) -> Swift.Bool
+@objc @_inheritsConvenienceInitializers open class NlsBleLog : ObjectiveC.NSObject {
+  public static let log: StarSCAN.SwiftyBeaver.Type
+  @objc override dynamic public init()
+  @objc deinit
+}
+@objc public protocol StarSCANCentralDelegate : ObjectiveC.NSObjectProtocol {
+  @objc optional func centralManagerDidUpdateState(_ central: CoreBluetooth.CBCentralManager)
+  @objc optional func onPeripheralReady(_ peripheral: StarSCAN.StarSCANPeripheral)
+  @objc optional func onPeripheralDidDisconnect(_ peripheral: StarSCAN.StarSCANPeripheral)
+  @objc optional func resetBarcodeImage()
+  @objc optional func onStartConnecting(_ peripheral: CoreBluetooth.CBPeripheral, _ reconnect: Swift.Bool)
+  @objc optional func onStopConnecting(_ peripheral: CoreBluetooth.CBPeripheral)
+}
+extension Foundation.Data {
+  @available(*, deprecated, message: "Please use `Int64` for `size` and provider `position`.")
+  public static func compress(size: Swift.Int, bufferSize: Swift.Int, provider: (_ position: Swift.Int, _ size: Swift.Int) throws -> Foundation.Data, consumer: (_ data: Foundation.Data) throws -> Swift.Void) throws -> StarSCAN.CRC32
+  @available(*, deprecated, message: "Please use `Int64` for `size` and provider `position`.")
+  public static func decompress(size: Swift.Int, bufferSize: Swift.Int, skipCRC32: Swift.Bool, provider: (_ position: Swift.Int, _ size: Swift.Int) throws -> Foundation.Data, consumer: (_ data: Foundation.Data) throws -> Swift.Void) throws -> StarSCAN.CRC32
+}
+@objc public protocol DFUPeripheralSelectorDelegate {
+  @objc func select(_ peripheral: CoreBluetooth.CBPeripheral, advertisementData: [Swift.String : Swift.AnyObject], RSSI: Foundation.NSNumber, hint name: Swift.String?) -> Swift.Bool
+  @objc func filterBy(hint dfuServiceUUID: CoreBluetooth.CBUUID) -> [CoreBluetooth.CBUUID]?
+}
+@_hasMissingDesignatedInitializers public class BKCentralStateMachine {
+  public enum State : Swift.Equatable {
+    case initialized, starting, unavailable(cause: StarSCAN.BKUnavailabilityCause), available, scanning
+    public static func == (a: StarSCAN.BKCentralStateMachine.State, b: StarSCAN.BKCentralStateMachine.State) -> Swift.Bool
+  }
+  @objc deinit
+}
+@objc @_inheritsConvenienceInitializers public class NlsBleFirmwareVersion : ObjectiveC.NSObject {
+  @objc public var productName: Swift.String?
+  @objc public var cpuFirmwareVersion: Swift.String?
+  @objc public var btFirmwareVersion: Swift.String?
+  @objc public func toString() -> Swift.String
+  @objc override dynamic public init()
+  @objc deinit
+}
+public typealias FirmwareVersion = StarSCAN.NlsBleFirmwareVersion
+@_inheritsConvenienceInitializers open class ConsoleDestination : StarSCAN.BaseDestination {
+  public var useNSLog: Swift.Bool
+  public var useTerminalColors: Swift.Bool {
+    get
+    set
+  }
+  override public var defaultHashValue: Swift.Int {
+    get
+  }
+  override public init()
+  override open func send(_ level: StarSCAN.SwiftyBeaver.Level, msg: Swift.String, thread: Swift.String, file: Swift.String, function: Swift.String, line: Swift.Int, context: Any? = nil) -> Swift.String?
+  @objc deinit
+}
+public protocol BKRemotePeerDelegate : AnyObject {
+  func remotePeer(_ remotePeer: StarSCAN.BKRemotePeer, didSendArbitraryData data: Foundation.Data)
+}
+public func == (lhs: StarSCAN.BKRemotePeer, rhs: StarSCAN.BKRemotePeer) -> Swift.Bool
+@_hasMissingDesignatedInitializers public class BKRemotePeer : Swift.Equatable {
+  final public let identifier: Foundation.UUID
+  public var delegate: (any StarSCAN.BKRemotePeerDelegate)?
+  public var configuration: StarSCAN.BKConfiguration?
+  @objc deinit
+}
+open class BaseDestination : Swift.Hashable, Swift.Equatable {
+  open var format: Swift.String
+  open var asynchronously: Swift.Bool
+  open var minLevel: StarSCAN.SwiftyBeaver.Level
+  open var levelString: StarSCAN.BaseDestination.LevelString
+  open var levelColor: StarSCAN.BaseDestination.LevelColor
+  open var calendar: Foundation.Calendar
+  public struct LevelString {
+    public var verbose: Swift.String
+    public var debug: Swift.String
+    public var info: Swift.String
+    public var warning: Swift.String
+    public var error: Swift.String
+  }
+  public struct LevelColor {
+    public var verbose: Swift.String
+    public var debug: Swift.String
+    public var info: Swift.String
+    public var warning: Swift.String
+    public var error: Swift.String
+  }
+  public func hash(into hasher: inout Swift.Hasher)
+  open var defaultHashValue: Swift.Int {
+    get
+  }
+  public init()
+  open func send(_ level: StarSCAN.SwiftyBeaver.Level, msg: Swift.String, thread: Swift.String, file: Swift.String, function: Swift.String, line: Swift.Int, context: Any? = nil) -> Swift.String?
+  public func execute(synchronously: Swift.Bool, block: @escaping () -> Swift.Void)
+  public func executeSynchronously<T>(block: @escaping () throws -> T) rethrows -> T
+  public func addFilter(_ filter: any StarSCAN.FilterType)
+  public func removeFilter(_ filter: any StarSCAN.FilterType)
+  @objc deinit
+  open var hashValue: Swift.Int {
+    get
+  }
+}
+public func == (lhs: StarSCAN.BaseDestination, rhs: StarSCAN.BaseDestination) -> Swift.Bool
+@objc @_inheritsConvenienceInitializers public class IntelHex2BinConverter : ObjectiveC.NSObject {
+  public static func convert(_ hex: Foundation.Data, mbrSize: Swift.UInt32 = 0) -> Foundation.Data?
+  @objc override dynamic public init()
+  @objc deinit
+}
+public let defaultReadChunkSize: Swift.Int
+public let defaultWriteChunkSize: Swift.Int
+public let defaultFilePermissions: Swift.UInt16
+public let defaultDirectoryPermissions: Swift.UInt16
+final public class Archive : Swift.Sequence {
+  public enum ArchiveError : Swift.Error {
+    case unreadableArchive
+    case unwritableArchive
+    case invalidEntryPath
+    case invalidCompressionMethod
+    case cancelledOperation
+    case invalidBufferSize
+    case invalidEntrySize
+    case invalidLocalHeaderDataOffset
+    case invalidLocalHeaderSize
+    case invalidCentralDirectoryOffset
+    case invalidCentralDirectorySize
+    case invalidCentralDirectoryEntryCount
+    case missingEndOfCentralDirectoryRecord
+    public static func == (a: StarSCAN.Archive.ArchiveError, b: StarSCAN.Archive.ArchiveError) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public enum AccessMode : Swift.UInt {
+    case create
+    case read
+    case update
+    public init?(rawValue: Swift.UInt)
+    public typealias RawValue = Swift.UInt
+    public var rawValue: Swift.UInt {
+      get
+    }
+  }
+  final public let url: Foundation.URL
+  final public let accessMode: StarSCAN.Archive.AccessMode
+  public init?(url: Foundation.URL, accessMode mode: StarSCAN.Archive.AccessMode, preferredEncoding: Swift.String.Encoding? = nil)
+  public init?(data: Foundation.Data = Data(), accessMode mode: StarSCAN.Archive.AccessMode, preferredEncoding: Swift.String.Encoding? = nil)
+  @objc deinit
+  final public func makeIterator() -> Swift.AnyIterator<StarSCAN.Entry>
+  final public subscript(path: Swift.String) -> StarSCAN.Entry? {
+    get
+  }
+  public typealias Element = StarSCAN.Entry
+  public typealias Iterator = Swift.AnyIterator<StarSCAN.Entry>
+}
+@_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers @objc public class DFUServiceController : ObjectiveC.NSObject {
+  @objc public func pause()
+  @objc public func resume()
+  @objc public func abort() -> Swift.Bool
+  @objc public func restart()
+  @objc public var paused: Swift.Bool {
+    @objc get
+  }
+  @objc public var aborted: Swift.Bool {
+    @objc get
+  }
+  @objc deinit
+}
+public protocol BKCentralDelegate : AnyObject {
+  func central(_ central: StarSCAN.BKCentral, remotePeripheralDidDisconnect remotePeripheral: StarSCAN.BKRemotePeripheral, error: (any Swift.Error)?)
+  func central(_ central: StarSCAN.BKCentral, remoteDidDisconnect remotePeripheral: CoreBluetooth.CBPeripheral)
+}
+@_inheritsConvenienceInitializers public class BKCentral : StarSCAN.BKPeer, StarSCAN.BKAvailabilityObservable {
+  public typealias ScanProgressHandler = ((_ newDiscoveries: [StarSCAN.BKDiscovery]) -> Swift.Void)
+  public typealias ScanCompletionHandler = ((_ result: [StarSCAN.BKDiscovery]?, _ error: StarSCAN.BKError?) -> Swift.Void)
+  public typealias ContinuousScanChangeHandler = ((_ changes: [StarSCAN.BKDiscoveriesChange], _ discoveries: [StarSCAN.BKDiscovery]) -> Swift.Void)
+  public typealias ContinuousScanStateHandler = ((_ newState: StarSCAN.BKCentral.ContinuousScanState) -> Swift.Void)
+  public typealias ContinuousScanErrorHandler = ((_ error: StarSCAN.BKError) -> Swift.Void)
+  public typealias ConnectCompletionHandler = ((_ remotePeripheral: StarSCAN.BKRemotePeripheral, _ error: StarSCAN.BKError?) -> Swift.Void)
+  public enum ContinuousScanState {
+    case stopped
+    case scanning
+    case waiting
+    public static func == (a: StarSCAN.BKCentral.ContinuousScanState, b: StarSCAN.BKCentral.ContinuousScanState) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public var availability: StarSCAN.BKAvailability? {
+    get
+  }
+  public var connectedRemotePeripherals: [StarSCAN.BKRemotePeripheral] {
+    get
+  }
+  override public var configuration: StarSCAN.BKConfiguration? {
+    get
+  }
+  weak public var delegate: (any StarSCAN.BKCentralDelegate)?
+  public var availabilityObservers: [StarSCAN.BKWeakAvailabilityObserver]
+  public init()
+  public func startWithConfiguration(_ configuration: StarSCAN.BKConfiguration) throws
+  public func scanWithDuration(_ duration: Foundation.TimeInterval = 3, updateDuplicates: Swift.Bool = false, scanServiceUUIDs: [CoreBluetooth.CBUUID]? = nil, progressHandler: StarSCAN.BKCentral.ScanProgressHandler?, completionHandler: StarSCAN.BKCentral.ScanCompletionHandler?)
+  public func interruptScan()
+  public func connect(_ timeout: Foundation.TimeInterval = 3, remotePeripheral: StarSCAN.BKRemotePeripheral, completionHandler: @escaping StarSCAN.BKCentral.ConnectCompletionHandler)
+  public func disconnectRemotePeripheral(_ remotePeripheral: StarSCAN.BKRemotePeripheral) throws
+  public func clearConnect(_ remotePeripheral: StarSCAN.BKRemotePeripheral)
+  public func retrieveRemotePeripheralWithUUID(remoteUUID: Foundation.UUID) -> StarSCAN.BKRemotePeripheral?
+  public func retrieveRemotePeripheralsWithUUIDs(remoteUUIDs: [Foundation.UUID]) -> [StarSCAN.BKRemotePeripheral]?
+  public func retrieveConnectedPeripherals() -> [StarSCAN.BKRemotePeripheral]
+  @objc deinit
+}
+public protocol DataConvertible {
+  static func + (lhs: Foundation.Data, rhs: Self) -> Foundation.Data
+  static func += (lhs: inout Foundation.Data, rhs: Self)
+}
+extension StarSCAN.DataConvertible {
+  public static func + (lhs: Foundation.Data, rhs: Self) -> Foundation.Data
+  public static func += (lhs: inout Foundation.Data, rhs: Self)
+}
+extension Swift.UInt8 : StarSCAN.DataConvertible {
+}
+extension Swift.UInt16 : StarSCAN.DataConvertible {
+}
+extension Swift.UInt32 : StarSCAN.DataConvertible {
+}
+extension Swift.Int : StarSCAN.DataConvertible {
+}
+extension Swift.Float : StarSCAN.DataConvertible {
+}
+extension Swift.Double : StarSCAN.DataConvertible {
+}
+extension Swift.String : StarSCAN.DataConvertible {
+  public static func + (lhs: Foundation.Data, rhs: Swift.String) -> Foundation.Data
+}
+extension Foundation.Data : StarSCAN.DataConvertible {
+  public static func + (lhs: Foundation.Data, rhs: Foundation.Data) -> Foundation.Data
+}
+@_hasMissingDesignatedInitializers public class BKRemoteCentral : StarSCAN.BKRemotePeer {
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers open class SwiftyBeaver {
+  public static let version: Swift.String
+  public static let build: Swift.Int
+  public enum Level : Swift.Int {
+    case verbose
+    case debug
+    case info
+    case warning
+    case error
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  public static var destinations: Swift.Set<StarSCAN.BaseDestination> {
+    get
+  }
+  @discardableResult
+  open class func addDestination(_ destination: StarSCAN.BaseDestination) -> Swift.Bool
+  @discardableResult
+  open class func removeDestination(_ destination: StarSCAN.BaseDestination) -> Swift.Bool
+  open class func removeAllDestinations()
+  open class func countDestinations() -> Swift.Int
+  open class func threadName() -> Swift.String
+  open class func verbose(_ message: @autoclosure () -> Any, _ file: Swift.String = #file, _ function: Swift.String = #function, line: Swift.Int = #line, context: Any? = nil)
+  open class func debug(_ message: @autoclosure () -> Any, _ file: Swift.String = #file, _ function: Swift.String = #function, line: Swift.Int = #line, context: Any? = nil)
+  open class func info(_ message: @autoclosure () -> Any, _ file: Swift.String = #file, _ function: Swift.String = #function, line: Swift.Int = #line, context: Any? = nil)
+  open class func warning(_ message: @autoclosure () -> Any, _ file: Swift.String = #file, _ function: Swift.String = #function, line: Swift.Int = #line, context: Any? = nil)
+  open class func error(_ message: @autoclosure () -> Any, _ file: Swift.String = #file, _ function: Swift.String = #function, line: Swift.Int = #line, context: Any? = nil)
+  open class func custom(level: StarSCAN.SwiftyBeaver.Level, message: @autoclosure () -> Any, file: Swift.String = #file, function: Swift.String = #function, line: Swift.Int = #line, context: Any? = nil)
+  public class func flush(secondTimeout: Swift.Int64) -> Swift.Bool
+  @objc deinit
+}
+@objc public enum DFUUuidType : Swift.Int {
+  case legacyService = 0
+  case legacyControlPoint = 1
+  case legacyPacket = 2
+  case legacyVersion = 3
+  case secureService = 4
+  case secureControl = 5
+  case securePacket = 6
+  case buttonlessService = 7
+  case buttonlessCharacteristic = 8
+  case buttonlessWithoutBondSharing = 9
+  case buttonlessWithBondSharing = 10
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public class DFUUuid : ObjectiveC.NSObject {
+  @objc final public let uuid: CoreBluetooth.CBUUID
+  @objc final public let type: StarSCAN.DFUUuidType
+  @objc public init(withUUID: CoreBluetooth.CBUUID, forType: StarSCAN.DFUUuidType)
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class DFUUuidHelper : ObjectiveC.NSObject {
+  @objc public var legacyDFUService: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var legacyDFUControlPoint: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var legacyDFUPacket: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var legacyDFUVersion: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var secureDFUService: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var secureDFUControlPoint: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var secureDFUPacket: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessExperimentalService: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessExperimentalCharacteristic: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessWithoutBonds: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc public var buttonlessWithBonds: CoreBluetooth.CBUUID {
+    get
+  }
+  @objc override dynamic public init()
+  @objc convenience public init(customUuids uuids: [StarSCAN.DFUUuid])
+  @objc deinit
+}
+public class BKConfiguration {
+  final public let dataService: CoreBluetooth.CBUUID
+  final public let dataServiceCharacteristicWrite: CoreBluetooth.CBUUID
+  final public let dataServiceCharacteristicRead: CoreBluetooth.CBUUID
+  final public let characteristicDescriptor: CoreBluetooth.CBUUID
+  final public let nordicDfuService: CoreBluetooth.CBUUID
+  final public let batteryService: CoreBluetooth.CBUUID
+  final public let batteryCharacteristic: CoreBluetooth.CBUUID
+  final public let endOfDataMark: Foundation.Data
+  final public let dataCancelledMark: Foundation.Data
+  public init()
+  @objc deinit
+}
+@objc public class DFUServiceInitiator : ObjectiveC.NSObject {
+  @objc weak public var delegate: (any StarSCAN.DFUServiceDelegate)?
+  @objc weak public var progressDelegate: (any StarSCAN.DFUProgressDelegate)?
+  @objc weak public var logger: (any StarSCAN.LoggerDelegate)?
+  @objc public var peripheralSelector: any StarSCAN.DFUPeripheralSelectorDelegate
+  @objc public var packetReceiptNotificationParameter: Swift.UInt16
+  @objc public var forceDfu: Swift.Bool
+  @objc public var forceScanningForNewAddressInLegacyDfu: Swift.Bool
+  @objc public var connectionTimeout: Swift.Double
+  @objc public var dataObjectPreparationDelay: Swift.Double
+  @objc public var alternativeAdvertisingNameEnabled: Swift.Bool
+  @objc public var alternativeAdvertisingName: Swift.String?
+  @objc public var enableUnsafeExperimentalButtonlessServiceInSecureDfu: Swift.Bool
+  @objc public var uuidHelper: StarSCAN.DFUUuidHelper
+  @objc public var disableResume: Swift.Bool
+  @available(*, deprecated, message: "Use init(queue: DispatchQueue?) instead.")
+  @objc public init(centralManager: CoreBluetooth.CBCentralManager, target: CoreBluetooth.CBPeripheral)
+  @objc public init(queue: Dispatch.DispatchQueue? = nil, delegateQueue: Dispatch.DispatchQueue = DispatchQueue.main, progressQueue: Dispatch.DispatchQueue = DispatchQueue.main, loggerQueue: Dispatch.DispatchQueue = DispatchQueue.main, centralManagerOptions: [Swift.String : Any]? = nil)
+  @objc public func with(firmware file: StarSCAN.DFUFirmware) -> StarSCAN.DFUServiceInitiator
+  @available(*, deprecated, message: "Use start(target: CBPeripheral) instead.")
+  @objc public func start() -> StarSCAN.DFUServiceController?
+  @objc public func start(target: CoreBluetooth.CBPeripheral) -> StarSCAN.DFUServiceController?
+  @objc public func start(targetWithIdentifier uuid: Foundation.UUID) -> StarSCAN.DFUServiceController?
+  @objc deinit
+}
+public func == (lhs: StarSCAN.BKAvailability, rhs: StarSCAN.BKAvailability) -> Swift.Bool
+public enum BKAvailability : Swift.Equatable {
+  case available
+  case unavailable(cause: StarSCAN.BKUnavailabilityCause)
+}
+public enum BKUnavailabilityCause : Swift.ExpressibleByNilLiteral, Swift.Equatable {
+  case any
+  case resetting
+  case unsupported
+  case unauthorized
+  case poweredOff
+  public init(nilLiteral: Swift.Void)
+  public func hash(into hasher: inout Swift.Hasher)
+  public static func == (a: StarSCAN.BKUnavailabilityCause, b: StarSCAN.BKUnavailabilityCause) -> Swift.Bool
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public protocol BKAvailabilityObservable : AnyObject {
+  var availabilityObservers: [StarSCAN.BKWeakAvailabilityObserver] { get set }
+  func addAvailabilityObserver(_ availabilityObserver: any StarSCAN.BKAvailabilityObserver)
+  func removeAvailabilityObserver(_ availabilityObserver: any StarSCAN.BKAvailabilityObserver)
+}
+@_hasMissingDesignatedInitializers public class BKWeakAvailabilityObserver {
+  @objc deinit
+}
+extension StarSCAN.BKAvailabilityObservable {
+  public func addAvailabilityObserver(_ availabilityObserver: any StarSCAN.BKAvailabilityObserver)
+  public func removeAvailabilityObserver(_ availabilityObserver: any StarSCAN.BKAvailabilityObserver)
+}
+public protocol BKAvailabilityObserver : AnyObject {
+  func availabilityObserver(_ availabilityObservable: any StarSCAN.BKAvailabilityObservable, availabilityDidChange availability: StarSCAN.BKAvailability)
+  func availabilityObserver(_ availabilityObservable: any StarSCAN.BKAvailabilityObservable, unavailabilityCauseDidChange unavailabilityCause: StarSCAN.BKUnavailabilityCause)
+  func centralManagerDidUpdateState(_ central: CoreBluetooth.CBCentralManager)
+}
+public protocol FilterType : AnyObject {
+  func apply(_ value: Swift.String?) -> Swift.Bool
+  func getTarget() -> StarSCAN.Filter.TargetType
+  func isRequired() -> Swift.Bool
+  func isExcluded() -> Swift.Bool
+  func reachedMinLevel(_ level: StarSCAN.SwiftyBeaver.Level) -> Swift.Bool
+}
+@_hasMissingDesignatedInitializers public class Filters {
+  public static let Path: StarSCAN.PathFilterFactory.Type
+  public static let Function: StarSCAN.FunctionFilterFactory.Type
+  public static let Message: StarSCAN.MessageFilterFactory.Type
+  @objc deinit
+}
+public class Filter {
+  public enum TargetType {
+    case Path(StarSCAN.Filter.ComparisonType)
+    case Function(StarSCAN.Filter.ComparisonType)
+    case Message(StarSCAN.Filter.ComparisonType)
+  }
+  public enum ComparisonType {
+    case StartsWith([Swift.String], Swift.Bool)
+    case Contains([Swift.String], Swift.Bool)
+    case Excludes([Swift.String], Swift.Bool)
+    case EndsWith([Swift.String], Swift.Bool)
+    case Equals([Swift.String], Swift.Bool)
+    case Custom((Swift.String) -> Swift.Bool)
+  }
+  public init(_ target: StarSCAN.Filter.TargetType, required: Swift.Bool, minLevel: StarSCAN.SwiftyBeaver.Level)
+  public func getTarget() -> StarSCAN.Filter.TargetType
+  public func isRequired() -> Swift.Bool
+  public func isExcluded() -> Swift.Bool
+  public func reachedMinLevel(_ level: StarSCAN.SwiftyBeaver.Level) -> Swift.Bool
+  @objc deinit
+}
+@_inheritsConvenienceInitializers public class CompareFilter : StarSCAN.Filter, StarSCAN.FilterType {
+  override public init(_ target: StarSCAN.Filter.TargetType, required: Swift.Bool, minLevel: StarSCAN.SwiftyBeaver.Level)
+  public func apply(_ value: Swift.String?) -> Swift.Bool
+  override public func isExcluded() -> Swift.Bool
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class FunctionFilterFactory {
+  public static func startsWith(_ prefixes: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func contains(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func excludes(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func endsWith(_ suffixes: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func equals(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func custom(required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose, filterPredicate: @escaping (Swift.String) -> Swift.Bool) -> any StarSCAN.FilterType
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class MessageFilterFactory {
+  public static func startsWith(_ prefixes: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func contains(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func excludes(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func endsWith(_ suffixes: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func equals(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func custom(required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose, filterPredicate: @escaping (Swift.String) -> Swift.Bool) -> any StarSCAN.FilterType
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class PathFilterFactory {
+  public static func startsWith(_ prefixes: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func contains(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func excludes(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func endsWith(_ suffixes: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func equals(_ strings: Swift.String..., caseSensitive: Swift.Bool = false, required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose) -> any StarSCAN.FilterType
+  public static func custom(required: Swift.Bool = false, minLevel: StarSCAN.SwiftyBeaver.Level = .verbose, filterPredicate: @escaping (Swift.String) -> Swift.Bool) -> any StarSCAN.FilterType
+  @objc deinit
+}
+extension StarSCAN.Filter.TargetType : Swift.Equatable {
+}
+public func == (lhs: StarSCAN.Filter.TargetType, rhs: StarSCAN.Filter.TargetType) -> Swift.Bool
+public struct Entry : Swift.Equatable {
+  public enum EntryType : Swift.Int {
+    case file
+    case directory
+    case symlink
+    public init?(rawValue: Swift.Int)
+    public typealias RawValue = Swift.Int
+    public var rawValue: Swift.Int {
+      get
+    }
+  }
+  public func path(using encoding: Swift.String.Encoding) -> Swift.String
+  public var path: Swift.String {
+    get
+  }
+  public var fileAttributes: [Foundation.FileAttributeKey : Any] {
+    get
+  }
+  public var checksum: StarSCAN.CRC32 {
+    get
+  }
+  public var type: StarSCAN.Entry.EntryType {
+    get
+  }
+  public var compressedSize: Swift.UInt64 {
+    get
+  }
+  public var uncompressedSize: Swift.UInt64 {
+    get
+  }
+  public static func == (lhs: StarSCAN.Entry, rhs: StarSCAN.Entry) -> Swift.Bool
+}
+extension Foundation.FileManager {
+  public func zipItem(at sourceURL: Foundation.URL, to destinationURL: Foundation.URL, shouldKeepParent: Swift.Bool = true, compressionMethod: StarSCAN.CompressionMethod = .none, progress: Foundation.Progress? = nil) throws
+  public func unzipItem(at sourceURL: Foundation.URL, to destinationURL: Foundation.URL, skipCRC32: Swift.Bool = false, progress: Foundation.Progress? = nil, preferredEncoding: Swift.String.Encoding? = nil) throws
+}
+extension Foundation.URL {
+  public func isContained(in parentDirectoryURL: Foundation.URL) -> Swift.Bool
+}
+open class SBPlatformDestination : StarSCAN.BaseDestination {
+  public var appID: Swift.String
+  public var appSecret: Swift.String
+  public var encryptionKey: Swift.String
+  public var analyticsUserName: Swift.String
+  public var analyticsUUID: Swift.String {
+    get
+  }
+  public struct SendingPoints {
+    public var verbose: Swift.Int
+    public var debug: Swift.Int
+    public var info: Swift.Int
+    public var warning: Swift.Int
+    public var error: Swift.Int
+    public var threshold: Swift.Int
+  }
+  public var sendingPoints: StarSCAN.SBPlatformDestination.SendingPoints
+  public var showNSLog: Swift.Bool
+  public var points: Swift.Int
+  public var serverURL: Foundation.URL?
+  public var entriesFileURL: Foundation.URL
+  public var sendingFileURL: Foundation.URL
+  public var analyticsFileURL: Foundation.URL
+  override public var defaultHashValue: Swift.Int {
+    get
+  }
+  public init(appID: Swift.String, appSecret: Swift.String, encryptionKey: Swift.String, serverURL: Foundation.URL? = URL(string: "https://api.swiftybeaver.com/api/entries/"), entriesFileName: Swift.String = "sbplatform_entries.json", sendingfileName: Swift.String = "sbplatform_entries_sending.json", analyticsFileName: Swift.String = "sbplatform_analytics.json")
+  override open func send(_ level: StarSCAN.SwiftyBeaver.Level, msg: Swift.String, thread: Swift.String, file: Swift.String, function: Swift.String, line: Swift.Int, context: Any? = nil) -> Swift.String?
+  public func sendNow()
+  @objc deinit
+}
+@objc public protocol StarSCANPeripheralDelegate : ObjectiveC.NSObjectProtocol {
+  @objc optional func onReady(_ peripheral: StarSCAN.StarSCANPeripheral)
+  @objc optional func onDidDisconnect(_ peripheral: StarSCAN.StarSCANPeripheral)
+  @objc optional func onScanDataReceived(_ peripheral: StarSCAN.StarSCANPeripheral, _ data: Foundation.Data)
+  @objc optional func onBatteryLevelRead(_ peripheral: StarSCAN.StarSCANPeripheral, _ level: Swift.Int)
+  @objc optional func onFirmwareVersionReceived(_ peripheral: StarSCAN.StarSCANPeripheral, _ firmware: StarSCAN.FirmwareVersion)
+  @objc optional func onDeviceConfigReceived(_ peripheral: StarSCAN.StarSCANPeripheral, _ config: Swift.String)
+  @objc optional func onSetDeviceConfigResponse(_ peripheral: StarSCAN.StarSCANPeripheral, _ ret: Swift.Int)
+  @objc optional func onUpdate(_ peripheral: StarSCAN.StarSCANPeripheral, _ state: StarSCAN.FirmwareUpdateState, _ error: Swift.String, _ progress: Swift.Int)
+}
+@objc public enum FirmwareUpdateState : Swift.Int {
+  case updating = 0
+  case success = 1
+  case fail = 2
+  public var description: Swift.String {
+    get
+  }
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+final public class GoogleCloudDestination : StarSCAN.BaseDestination {
+  public init(serviceName: Swift.String)
+  override final public var asynchronously: Swift.Bool {
+    get
+    set
+  }
+  override final public func send(_ level: StarSCAN.SwiftyBeaver.Level, msg: Swift.String, thread: Swift.String, file: Swift.String, function: Swift.String, line: Swift.Int, context: Any? = nil) -> Swift.String?
+  @objc deinit
+}
+@_inheritsConvenienceInitializers @objc public class SecureDFUServiceInitiator : StarSCAN.DFUServiceInitiator {
+  @objc override public func start(targetWithIdentifier uuid: Foundation.UUID) -> StarSCAN.DFUServiceController?
+  @available(*, deprecated, message: "Use init(queue: DispatchQueue?) instead.")
+  @objc override public init(centralManager: CoreBluetooth.CBCentralManager, target: CoreBluetooth.CBPeripheral)
+  @objc override public init(queue: Dispatch.DispatchQueue? = nil, delegateQueue: Dispatch.DispatchQueue = super, progressQueue: Dispatch.DispatchQueue = super, loggerQueue: Dispatch.DispatchQueue = super, centralManagerOptions: [Swift.String : Any]? = nil)
+  @objc deinit
+}
+public enum DFUStreamZipError : Swift.Error {
+  case noManifest
+  case invalidManifest
+  case fileNotFound
+  case typeNotFound
+  public static func == (a: StarSCAN.DFUStreamZipError, b: StarSCAN.DFUStreamZipError) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension StarSCAN.DFUStreamZipError : Foundation.LocalizedError {
+  public var errorDescription: Swift.String? {
+    get
+  }
+}
+@objc @_inheritsConvenienceInitializers @_hasMissingDesignatedInitializers public class StarSCANCentral : ObjectiveC.NSObject {
+  @objc weak public var centralDelegate: (any StarSCAN.StarSCANCentralDelegate)?
+  @objc public static let instance: StarSCAN.StarSCANCentral
+  @objc public static func getInstance() -> StarSCAN.StarSCANCentral
+  @objc public func application(_ application: UIKit.UIApplication, didFinishLaunchingWithOptions launchOptions: [UIKit.UIApplication.LaunchOptionsKey : Any]?)
+  @objc public func generateConnectCodeBitmap() -> UIKit.UIImage?
+  @objc public func generateConnectBarCode128() -> UIKit.UIImage?
+  @objc public func startScanAndConnect()
+  @objc public func stopScan()
+  @objc public func useSystemConnectedPeripheral(_ name: Swift.String? = nil, _ identifier: Foundation.UUID? = nil) -> Swift.Bool
+  @objc public func clearConnect(_ peripheral: StarSCAN.StarSCANPeripheral, _ showAlert: Swift.Bool = true)
+  @objc public func clearDisconnectedPeripherals() -> [Foundation.UUID]
+  @objc public func getReconnectPeripherals() -> [Foundation.UUID]
+  @objc public func getControllablePeripherals() -> [StarSCAN.StarSCANPeripheral]
+  @objc deinit
+}
+extension StarSCAN.Archive {
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func addEntry(with path: Swift.String, relativeTo baseURL: Foundation.URL, compressionMethod: StarSCAN.CompressionMethod = .none, bufferSize: Swift.UInt32, progress: Foundation.Progress? = nil) throws
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func addEntry(with path: Swift.String, fileURL: Foundation.URL, compressionMethod: StarSCAN.CompressionMethod = .none, bufferSize: Swift.UInt32, progress: Foundation.Progress? = nil) throws
+  @available(*, deprecated, message: "Please use `Int64` for `uncompressedSize` and provider `position`. `Int` for `bufferSize`.")
+  final public func addEntry(with path: Swift.String, type: StarSCAN.Entry.EntryType, uncompressedSize: Swift.UInt32, modificationDate: Foundation.Date = Date(), permissions: Swift.UInt16? = nil, compressionMethod: StarSCAN.CompressionMethod = .none, bufferSize: Swift.Int = defaultWriteChunkSize, progress: Foundation.Progress? = nil, provider: (_ position: Swift.Int, _ size: Swift.Int) throws -> Foundation.Data) throws
+  @available(*, deprecated, message: "Please use `Int` for `bufferSize`.")
+  final public func remove(_ entry: StarSCAN.Entry, bufferSize: Swift.UInt32, progress: Foundation.Progress? = nil) throws
+}
+@_inheritsConvenienceInitializers @objc public class LegacyDFUServiceInitiator : StarSCAN.DFUServiceInitiator {
+  @objc override public func start(targetWithIdentifier uuid: Foundation.UUID) -> StarSCAN.DFUServiceController?
+  @available(*, deprecated, message: "Use init(queue: DispatchQueue?) instead.")
+  @objc override public init(centralManager: CoreBluetooth.CBCentralManager, target: CoreBluetooth.CBPeripheral)
+  @objc override public init(queue: Dispatch.DispatchQueue? = nil, delegateQueue: Dispatch.DispatchQueue = super, progressQueue: Dispatch.DispatchQueue = super, loggerQueue: Dispatch.DispatchQueue = super, centralManagerOptions: [Swift.String : Any]? = nil)
+  @objc deinit
+}
+@objc public enum LogLevel : Swift.Int {
+  case debug = 0
+  case verbose = 1
+  case info = 5
+  case application = 10
+  case warning = 15
+  case error = 20
+  public func name() -> Swift.String
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+@objc public protocol LoggerDelegate {
+  @objc func logWith(_ level: StarSCAN.LogLevel, message: Swift.String)
+}
+public enum DFUStreamHexError : Swift.Error {
+  case invalidHexFile
+  public static func == (a: StarSCAN.DFUStreamHexError, b: StarSCAN.DFUStreamHexError) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public func == (lhs: StarSCAN.BKDiscovery, rhs: StarSCAN.BKDiscovery) -> Swift.Bool
+public struct BKDiscovery : Swift.Equatable {
+  public var localName: Swift.String? {
+    get
+  }
+  public let advertisementData: [Swift.String : Any]
+  public let remotePeripheral: StarSCAN.BKRemotePeripheral
+  public let RSSI: Swift.Int
+  public init(advertisementData: [Swift.String : Any], remotePeripheral: StarSCAN.BKRemotePeripheral, RSSI: Swift.Int)
+}
+extension StarSCAN.Archive {
+  final public var data: Foundation.Data? {
+    get
+  }
+}
+@_inheritsConvenienceInitializers @objc open class DFUPeripheralSelector : ObjectiveC.NSObject, StarSCAN.DFUPeripheralSelectorDelegate {
+  @objc open func select(_ peripheral: CoreBluetooth.CBPeripheral, advertisementData: [Swift.String : Swift.AnyObject], RSSI: Foundation.NSNumber, hint name: Swift.String? = nil) -> Swift.Bool
+  @objc open func filterBy(hint dfuServiceUUID: CoreBluetooth.CBUUID) -> [CoreBluetooth.CBUUID]?
+  @objc override dynamic public init()
+  @objc deinit
+}
+extension StarSCAN.BKRemotePeripheral.State : Swift.Equatable {}
+extension StarSCAN.BKRemotePeripheral.State : Swift.Hashable {}
+extension StarSCAN.CompressionMethod : Swift.Equatable {}
+extension StarSCAN.CompressionMethod : Swift.Hashable {}
+extension StarSCAN.CompressionMethod : Swift.RawRepresentable {}
+extension StarSCAN.DFUFirmwareType : Swift.Equatable {}
+extension StarSCAN.DFUFirmwareType : Swift.Hashable {}
+extension StarSCAN.DFUFirmwareType : Swift.RawRepresentable {}
+extension StarSCAN.DFUFirmwareError.FileType : Swift.Equatable {}
+extension StarSCAN.DFUFirmwareError.FileType : Swift.Hashable {}
+extension StarSCAN.DFUError : Swift.Equatable {}
+extension StarSCAN.DFUError : Swift.Hashable {}
+extension StarSCAN.DFUError : Swift.RawRepresentable {}
+extension StarSCAN.DFUState : Swift.Equatable {}
+extension StarSCAN.DFUState : Swift.Hashable {}
+extension StarSCAN.DFUState : Swift.RawRepresentable {}
+extension StarSCAN.Archive.ArchiveError : Swift.Equatable {}
+extension StarSCAN.Archive.ArchiveError : Swift.Hashable {}
+extension StarSCAN.Archive.AccessMode : Swift.Equatable {}
+extension StarSCAN.Archive.AccessMode : Swift.Hashable {}
+extension StarSCAN.Archive.AccessMode : Swift.RawRepresentable {}
+extension StarSCAN.BKCentral.ContinuousScanState : Swift.Equatable {}
+extension StarSCAN.BKCentral.ContinuousScanState : Swift.Hashable {}
+extension StarSCAN.SwiftyBeaver.Level : Swift.Equatable {}
+extension StarSCAN.SwiftyBeaver.Level : Swift.Hashable {}
+extension StarSCAN.SwiftyBeaver.Level : Swift.RawRepresentable {}
+extension StarSCAN.DFUUuidType : Swift.Equatable {}
+extension StarSCAN.DFUUuidType : Swift.Hashable {}
+extension StarSCAN.DFUUuidType : Swift.RawRepresentable {}
+extension StarSCAN.BKUnavailabilityCause : Swift.Hashable {}
+extension StarSCAN.Entry.EntryType : Swift.Equatable {}
+extension StarSCAN.Entry.EntryType : Swift.Hashable {}
+extension StarSCAN.Entry.EntryType : Swift.RawRepresentable {}
+extension StarSCAN.FirmwareUpdateState : Swift.Equatable {}
+extension StarSCAN.FirmwareUpdateState : Swift.Hashable {}
+extension StarSCAN.FirmwareUpdateState : Swift.RawRepresentable {}
+extension StarSCAN.DFUStreamZipError : Swift.Equatable {}
+extension StarSCAN.DFUStreamZipError : Swift.Hashable {}
+extension StarSCAN.LogLevel : Swift.Equatable {}
+extension StarSCAN.LogLevel : Swift.Hashable {}
+extension StarSCAN.LogLevel : Swift.RawRepresentable {}
+extension StarSCAN.DFUStreamHexError : Swift.Equatable {}
+extension StarSCAN.DFUStreamHexError : Swift.Hashable {}

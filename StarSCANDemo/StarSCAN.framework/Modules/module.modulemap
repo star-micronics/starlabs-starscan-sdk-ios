@@ -1,0 +1,16 @@
+framework module StarSCAN {
+  umbrella header "StarSCAN.h"
+
+  export *
+  module * { export * }
+
+  explicit module StarSCANSkip {
+      header "BleUpdate.h"
+      header "BarcodeUtil.h"
+  }
+}
+
+module StarSCAN.Swift {
+  header "StarSCAN-Swift.h"
+  requires objc
+}

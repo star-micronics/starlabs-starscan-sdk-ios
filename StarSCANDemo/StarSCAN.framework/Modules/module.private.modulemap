@@ -1,0 +1,6 @@
+
+framework module StarSCAN_Private {
+    header "BarcodeUtil.h"
+    header "BleUpdate.h"
+    export *
+}
